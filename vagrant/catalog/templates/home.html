@@ -14,7 +14,7 @@
             <h3>Categories</h3>
             <div class="list-group">
               {% for catalog in catalogs_display %}
-              <a class="list-group-item" href="{{ url_for('get_catalog_items', name = catalog.name) }}">
+              <a class="list-group-item" href="{{ url_for('get_catalog_items', id = catalog.id) }}">
                 <strong>{{ catalog.name }}</strong>
               </a>
               {% endfor %}
@@ -25,7 +25,7 @@
             <h3>{{ items_summary }}</h3>
             <div class="list-group">
               {% for item in items_display %}
-              <a class="list-group-item" href="#">
+              <a class="list-group-item" href="{{ url_for('get_item', id = item.id) }}">
                 <strong>{{ item.title }} </strong>
                 {% if 'catalog' in item %}
                 <em>({{ item.catalog }})</em>
