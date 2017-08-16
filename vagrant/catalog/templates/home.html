@@ -14,7 +14,9 @@
             <h3>Categories</h3>
             <div class="list-group">
               {% for catalog in catalogs_display %}
-              <a class="list-group-item" href="#"><strong>{{ catalog.name }}</strong></a>
+              <a class="list-group-item" href="{{ url_for('get_catalog_items', name = catalog.name) }}">
+                <strong>{{ catalog.name }}</strong>
+              </a>
               {% endfor %}
             </div>
           </div>
