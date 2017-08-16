@@ -20,10 +20,15 @@
           </div>
 
           <div class="col-md-8">
-            <h3>Latest Items</h3>
+            <h3>{{ items_summary }}</h3>
             <div class="list-group">
               {% for item in items_display %}
-              <a class="list-group-item" href="#"><strong>{{ item.title }}</strong> <em>({{ item.catalog }})</em></a>
+              <a class="list-group-item" href="#">
+                <strong>{{ item.title }} </strong>
+                {% if 'catalog' in item %}
+                <em>({{ item.catalog }})</em>
+                {% endif %}
+              </a>
               {% endfor %}
             </div>
          </div>
