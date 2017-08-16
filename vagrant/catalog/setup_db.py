@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import ForeignKey, Column, Integer, String, DateTime, create_engine
 from datetime import datetime
+from data import fake_data
 
 Base = declarative_base()
 
@@ -56,18 +57,9 @@ def setup_db():
 	# Clear catalog and item in database
 	session.query(Catalog).delete()
 	session.query(Item).delete()
-	# Create sample catalog
-	catalog_database = create_catalog_with_items(
-		"Database",
-		{
-		"PostgreSQL" : "PostgreSQL desc",
-		"MySQL" : "MySQL desc",
-		"Oracle" : "Oracle desc",
-		"Microsoft SQL Server" : "Microsoft SQL Server desc",
-		"SQLite" : "SQLite desc"
-		})
-	# Add new catalog to session
-	session.add(catalog_database)
+	# Get fake catalog and add to database
+	for catalog, items in fake_data().items():
+		session.add(create_catalog_with_items(catalog, items))
 	# Commit the change
 	session.commit()
 	# Close session
