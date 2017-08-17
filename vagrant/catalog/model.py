@@ -40,7 +40,7 @@ class Item(Base):
 
 def create_catalog_with_items(catalog_name, items):
 	catalog = Catalog(catalog_name)
-	for item_name, item_desc in items.items():
-		catalog.items.append(Item(item_name, item_desc))
+	for item_title, item_desc in items.items():
+		catalog.items.append(Item(item_title, item_desc))
 
 	return catalog

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect, url_for
 from flask import session as login_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, desc
@@ -145,6 +145,30 @@ def get_item(id):
 	item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc}
 	disconnect_db()
 	return render_template('item_detail.html', item_display = item_display)
+
+@app.route('/item/create', methods=['GET', 'POST'])
+def createItem():
+	if request.method == 'GET':
+		connect_db()
+		catalogs = session.query(Catalog).all()
+		catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
+		disconnect_db()
+		return render_template('edit_item.html', catalogs_display = catalogs_display)
+
+	if request.method == 'POST':
+		connect_db()
+		title = request.form['title']
+		results = session.query(Item).filter_by(title = title).all()
+		if len(results) > 0:
+			disconnect_db()
+			return redirect(url_for('createItem'))
+
+		catalog = session.query(Catalog).filter_by(id = request.form['catalog_id']).one()
+		catalog.items.append(Item(title, request.form['desc']))
+		session.add(catalog)
+		session.commit()
+		disconnect_db()
+		return redirect(url_for('home'))
 
 if __name__ == '__main__':
 	app.secret_key = 'super_secret_key'
