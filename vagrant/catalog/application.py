@@ -10,7 +10,7 @@ from model import Catalog, Item
 import httplib2, json, requests
 import random, string
 
-#CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
+CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
 
 app = Flask(__name__)
 
@@ -27,14 +27,13 @@ def disconnect_db():
 	session.close()
 	engine.dispose()
 
-@app.route('/logout')
-def logout():
-	return
+@app.route('/')
+def index():
+	return redirect(url_for('home')) 
 
-@app.route('/catalog', methods=['GET', 'POST'])
+@app.route('/catalog')
 def home():
 	if request.method == 'GET':
-		print 'in home get'
 		if 'username' in login_session:
 			username = login_session['username']
 		else:
@@ -51,15 +50,15 @@ def home():
 		disconnect_db()
 		return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary, state = state, username = username)
 
+@app.route('/gconnect', methods=['POST'])
+def gconnect():
 	if request.method == 'POST':
-		print 'in home post'
 		# Validate state token
 		if request.args.get('state') != login_session['state']:
 			response = make_response(json.dumps('Invalid state parameter.'), 401)
 			response.headers['Content-Type'] = 'application/json'
 			return response
 
-		print 'get auth code'
 		# Obtain authorization code
 		code = request.data
 		try:
@@ -68,12 +67,10 @@ def home():
 			oauth_flow.redirect_uri = 'postmessage'
 			credentials = oauth_flow.step2_exchange(code)
 		except FlowExchangeError:
-			print 'error'
 			response = make_response(json.dumps('Failed to upgrade the authorization code.'), 401)
 			response.headers['Content-Type'] = 'application/json'
 			return response
 
-		print 'checkout token'
 		# Check that the access token is valid.
 		access_token = credentials.access_token
 		url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token)
@@ -85,7 +82,6 @@ def home():
 			response.headers['Content-Type'] = 'application/json'
 			return response
 
-		print 'verify token 1'
 		# Verify that the access token is used for the intended user.
 		gplus_id = credentials.id_token['sub']
 		if result['user_id'] != gplus_id:
@@ -94,16 +90,13 @@ def home():
 			response.headers['Content-Type'] = 'application/json'
 			return response
 
-		print 'verify token 2'
 		# Verify that the access token is valid for this app.
 		if result['issued_to'] != CLIENT_ID:
 			response = make_response(
 			json.dumps("Token's client ID does not match app's."), 401)
-			print "Token's client ID does not match app's."
 			response.headers['Content-Type'] = 'application/json'
 			return response
 
-		print 'verify token 3'
 		stored_access_token = login_session.get('access_token')
 		stored_gplus_id = login_session.get('gplus_id')
 		if stored_access_token is not None and gplus_id == stored_gplus_id:
@@ -122,9 +115,34 @@ def home():
 		data = answer.json()
 		login_session['username'] = data['name']
 
-		print 'redirect to home get'
-
 		return redirect(url_for('home'))
+
+@app.route('/gdisconnect')
+def gdisconnect():
+    if login_session['access_token'] is None:
+    	response = make_response(json.dumps('User does not login'), 401)
+    	response.headers['Content-Type'] = 'application/json'
+    	return response
+
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    h = httplib2.Http()
+    response = h.request(url, 'GET')
+    result = response[0]
+    content = response[1]
+    if result['status'] == '200':
+		del login_session['access_token']
+		del login_session['gplus_id']
+		del login_session['username']
+		return redirect(url_for('home'))
+    else:
+		print result
+		print content
+		del login_session['access_token']
+		del login_session['gplus_id']
+		del login_session['username']
+		response = make_response(json.dumps('Fail to logout', 400))
+		response.headers['Content-Type'] = 'application/json'
+		return response
 
 @app.route('/catalog/<id>/')
 def get_catalog_items(id):

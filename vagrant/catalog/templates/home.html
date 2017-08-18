@@ -23,7 +23,7 @@
                   <span class="g-signin"
                   data-scope="openid email"
                   data-clientid="993486058985-qug1qa6dh1eljv4hhpiho0mfsq4bjknd.apps.googleusercontent.com"
-                  data-redirecturi="/"
+                  data-redirecturi="/catalog"
                   data-accesstype="offline"
                   data-cookiepolicy="single_host_origin"
                   data-callback="signInCallback"
@@ -33,7 +33,7 @@
               </li>
               {% else %}
               <li><a href="">{{ username }}</a></li>
-              <li><a href="{{ url_for('logout') }}">Logout</a></li>
+              <li><a href="{{ url_for('gdisconnect') }}">Logout</a></li>
               {% endif %}
             </ul>
           </div>
@@ -75,20 +75,17 @@
           $('#signinButton').attr('style', 'display: none');
           $.ajax({
             type: 'POST',
-            url: '/catalog?state={{ state }}',
+            url: '/gconnect?state={{ state }}',
             processData: false,
             data: authResult['code'],
             contentType: 'application/octet-stream; charset=utf-8',
             success: function(result) {
               if (result) {
-                $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
                 setTimeout(function() {
-                  window.location.href = "/";
+                  window.location.href = "/catalog";
                 }, 4000);
               } else if (authResult['error']) {
                 console.log('There was an error: ' + authResult['error']);
-              } else {
-                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
               }
             }
           });
