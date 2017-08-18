@@ -54,10 +54,10 @@
           </div>
 
           <div class="col-md-8">
-            <h3>{{ items_summary }}<span class="pull-right"><a href="{{ url_for('createItem') }}">Create Item</a></span></h3>
+            <h3>{{ items_summary }}<span class="pull-right"><a href="{{ url_for('create_item') }}">Create Item</a></span></h3>
             <div class="list-group">
               {% for item in items_display %}
-              <a class="list-group-item" href="{{ url_for('get_item', id = item.id) }}">
+              <a class="list-group-item" href="{{ url_for('read_item', id = item.id) }}">
                 <strong>{{ item.title }} </strong>
                 {% if 'catalog' in item %}
                 <em>({{ item.catalog }})</em>

@@ -41,21 +41,21 @@
       <div class="container">
         <main class="row">
           <div class="col-md-3 col-md-offset-1">
-            <h3>Edit item</h3>
-            <form action="{{ url_for('edit_item', id = item_display.id) }}" method='POST'>
+            <h3>Add new item</h3>
+            <form action="{{ url_for('create_item') }}" method='POST'>
               <label for="title">Title:</label><br>
-              <input type="text" name="title" value="{{ item_display.title }}"><br>
+              <input type="text" name='title'><br>
 
               <label for="desc">Description:</label><br>
-              <textarea name="desc" rows="10" cols="50">{{ item_display.title }}</textarea><br>
+              <textarea name="desc" rows="10" cols="50"></textarea><br>
 
               <label for="catalog_id">Catalog:</label><br>
               <select name="catalog_id" class="selectpicker">
                 {% for catalog in catalogs_display %}
-                <option value="{{ catalog.id }}" {{ "selected" if catalog.id == item_display.catalog_id }}>{{ catalog.name }}</option>
+                <option value="{{ catalog.id }}">{{ catalog.name }}</option>
                 {% endfor %}
               </select><br><br>
-              <input class="btn btn-default" type='submit' value='Submit'>
+              <input class="btn btn-default" type='submit' value='Add'>
             </form>
           </div>
         </main>

@@ -10,9 +10,11 @@
    <body>
       <div class="container">
         <main class="row">
-          <h2>{{ item_display.title }}</h2>
-          <label>Description:</label>
-          <p>{{ item_display.desc }}</p>
+          <h2>Delete item</h2>
+          <div class="well well-lg">Are you sure you want to delete <strong>{{ item_display.title }}</strong>?</div>
+          <form action="{{ url_for('delete_item', id = item_display.id)}}" method='POST'>
+            <input class="btn btn-default" type='submit' value='Submit'>
+          </form>
         </main>
       </div>
    </body>
