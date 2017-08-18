@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, make_response, redirect, url_for, jsonify
 from flask import session as login_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, desc
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+from time import strftime
 from model import Catalog, Item
 import httplib2, json, requests
 import random, string
@@ -29,7 +30,7 @@ def disconnect_db():
 
 @app.route('/')
 def index():
-    return redirect(url_for('home')) 
+    return redirect(url_for('home'))
 
 @app.route('/catalog')
 def home():
@@ -151,14 +152,6 @@ def get_catalog_items(id):
     disconnect_db()
     return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary)
 
-@app.route('/item/<id>')
-def read_item(id):
-    connect_db()
-    item = session.query(Item).filter_by(id = id).one()
-    item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc}
-    disconnect_db()
-    return render_template('read_item.html', item_display = item_display)
-
 @app.route('/item/create', methods=['GET', 'POST'])
 def create_item():
     if request.method == 'GET':
@@ -183,6 +176,14 @@ def create_item():
         disconnect_db()
         return redirect(url_for('home'))
 
+@app.route('/item/<id>')
+def read_item(id):
+    connect_db()
+    item = session.query(Item).filter_by(id = id).one()
+    item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc}
+    disconnect_db()
+    return render_template('read_item.html', item_display = item_display)
+
 @app.route('/item/<id>/edit', methods=['GET', 'POST'])
 def edit_item(id):
     connect_db()
@@ -203,7 +204,7 @@ def edit_item(id):
         session.commit()
         disconnect_db()
         return redirect(url_for('read_item', id = id))
-    
+
     if request.method == 'GET':
         disconnect_db()
         username = login_session.get('username', None)
@@ -226,6 +227,30 @@ def delete_item(id):
         item_display = {'id' : item.id, 'title' : item.title}
         username = login_session.get('username', None)
         return render_template('delete_item.html', item_display = item_display, username = username)
+
+@app.route('/catalog/json')
+def get_jsonified_catalogs():
+    """Returns jsonified catalogs"""
+    connect_db()
+    json = []
+    catalogs = session.query(Catalog).all()
+
+    for catalog in catalogs:
+        catalog_json = {}
+        catalog_json["id"] = catalog.id
+        catalog_json["name"] = catalog.name
+        catalog_json["date"] = catalog.date.strftime("%d %b %Y %H:%M:%S")
+        catalog_json["items"] = []
+        for item in catalog.items:
+        	item_json = {}
+        	item_json["id"] = item.id
+        	item_json["title"] = item.title
+        	item_json["desc"] = item.desc
+        	item_json["date"] = item.date.strftime("%d %b %Y %H:%M:%S")
+        	item_json["catalog_id"] = item.catalog_id
+        	catalog_json["items"].append(item_json)
+        json.append(catalog_json)
+    return jsonify(Catalogs = json)
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
