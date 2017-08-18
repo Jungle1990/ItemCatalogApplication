@@ -1,21 +1,12 @@
-<!DOCTYPE html>
-<html>
-   <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <title>Item</title>
-   </head>
+{% extends "main.html" %}
+{% block content %}
+  <h2>{{ item_display.title }}</h2>
 
-   <body>
-      <div class="container">
-        <main class="row">
-          <h2>{{ item_display.title }}</h2>
-          <label>Description:</label>
-          <p>{{ item_display.desc }}</p>
-          <a class="btn btn-default" href="{{ url_for('edit_item', id = item_display.id) }}">Edit</a>
-          <a class="btn btn-default" href="{{ url_for('delete_item', id = item_display.id) }}">Delete</a>
-        </main>
-      </div>
-   </body>
-</html>
+  <label>Description:</label>
+
+  <p>{{ item_display.desc }}</p>
+
+  <a class="btn btn-default" href="{{ url_for('edit_item', id = item_display.id) }}">Edit</a>
+
+  <a class="btn btn-default" href="{{ url_for('delete_item', id = item_display.id) }}">Delete</a>
+{% endblock %}

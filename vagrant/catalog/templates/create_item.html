@@ -1,64 +1,26 @@
-<!DOCTYPE html>
-<html>
-   <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-      <title>Catalog</title>
-   </head>
-   <body>
-      <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
-          <div class="navbar-header">
-            <a href="/catalog" class="navbar-brand">Catalog</a>
-          </div>
-          <div class="collapse navbar-collapse">
-            <ul class="nav navbar-nav navbar-right">
-              {% if username == None %}
-              <li>
-                <div id="signInButton">
-                  <span class="g-signin"
-                  data-scope="openid email"
-                  data-clientid="993486058985-qug1qa6dh1eljv4hhpiho0mfsq4bjknd.apps.googleusercontent.com"
-                  data-redirecturi="/"
-                  data-accesstype="offline"
-                  data-cookiepolicy="single_host_origin"
-                  data-callback="signInCallback"
-                  data-approvalprompt="force">
-                  </span>
-                </div>
-              </li>
-              {% else %}
-              <li><a href="">{{ username }}</a></li>
-              <li><a href="{{ url_for('gdisconnect') }}">Logout</a></li>
-              {% endif %}
-            </ul>
-          </div>
-        </div>
-      </nav>
+{% extends "main.html" %}
+{% block content %}
+  <div class="col-md-3 col-md-offset-1">
+    <h3>Add new item</h3>
 
-      <div class="container">
-        <main class="row">
-          <div class="col-md-3 col-md-offset-1">
-            <h3>Add new item</h3>
-            <form action="{{ url_for('create_item') }}" method='POST'>
-              <label for="title">Title:</label><br>
-              <input type="text" name='title'><br>
+    <form action="{{ url_for('create_item') }}" method='POST'>
+      <label for="title">Title:</label><br>
 
-              <label for="desc">Description:</label><br>
-              <textarea name="desc" rows="10" cols="50"></textarea><br>
+      <input type="text" name='title'><br>
 
-              <label for="catalog_id">Catalog:</label><br>
-              <select name="catalog_id" class="selectpicker">
-                {% for catalog in catalogs_display %}
-                <option value="{{ catalog.id }}">{{ catalog.name }}</option>
-                {% endfor %}
-              </select><br><br>
-              <input class="btn btn-default" type='submit' value='Add'>
-            </form>
-          </div>
-        </main>
-      </div>
-   </body>
-</html>
+      <label for="desc">Description:</label><br>
+
+      <textarea name="desc" rows="10" cols="50"></textarea><br>
+
+      <label for="catalog_id">Catalog:</label><br>
+
+      <select name="catalog_id" class="selectpicker">
+        {% for catalog in catalogs_display %}
+          <option value="{{ catalog.id }}">{{ catalog.name }}</option>
+        {% endfor %}
+      </select><br><br>
+
+      <input class="btn btn-default" type='submit' value='Add'>
+    </form>
+  </div>
+{% endblock %}

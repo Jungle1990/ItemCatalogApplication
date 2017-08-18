@@ -38,13 +38,11 @@ def home():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
     login_session['state'] = state
 
-    connect_db()
     catalogs = session.query(Catalog).all()
     items = session.query(Item).order_by(desc(Item.date)).all()
     catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
     items_display = [{'id' : item.id, 'title' : item.title, 'catalog' : item.catalog.name} for item in items]
     items_summary = 'Latest Items'
-    disconnect_db()
     return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary, state = state, username = username)
 
 @app.route('/gconnect', methods=['POST'])
@@ -142,51 +140,41 @@ def gdisconnect():
 
 @app.route('/catalog/<id>/')
 def get_catalog_items(id):
-    connect_db()
     catalogs = session.query(Catalog).all()
     selected_catalog = session.query(Catalog).filter_by(id = id).one()
     items = selected_catalog.items
     catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
     items_display = [{'id' : item.id, 'title' : item.title} for item in items]
     items_summary = '{0} Items ({1} items)'.format(selected_catalog.name, len(items_display))
-    disconnect_db()
     return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary)
 
 @app.route('/item/create', methods=['GET', 'POST'])
 def create_item():
     if request.method == 'GET':
-        connect_db()
         catalogs = session.query(Catalog).all()
         catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
-        disconnect_db()
         return render_template('create_item.html', catalogs_display = catalogs_display)
 
     if request.method == 'POST':
-        connect_db()
         title = request.form['title']
         results = session.query(Item).filter_by(title = title).all()
         if len(results) > 0:
-            disconnect_db()
             return redirect(url_for('createItem'))
 
         catalog = session.query(Catalog).filter_by(id = request.form['catalog_id']).one()
         catalog.items.append(Item(title, request.form['desc']))
         session.add(catalog)
         session.commit()
-        disconnect_db()
         return redirect(url_for('home'))
 
 @app.route('/item/<id>')
 def read_item(id):
-    connect_db()
     item = session.query(Item).filter_by(id = id).one()
     item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc}
-    disconnect_db()
     return render_template('read_item.html', item_display = item_display)
 
 @app.route('/item/<id>/edit', methods=['GET', 'POST'])
 def edit_item(id):
-    connect_db()
     catalogs = session.query(Catalog).all()
     item = session.query(Item).filter_by(id = id).one()
     catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
@@ -202,28 +190,23 @@ def edit_item(id):
         print '2'
         session.add(item)
         session.commit()
-        disconnect_db()
         return redirect(url_for('read_item', id = id))
 
     if request.method == 'GET':
-        disconnect_db()
         username = login_session.get('username', None)
         item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc, 'catalog_id' : item.catalog_id}
         return render_template('edit_item.html', item_display = item_display, catalogs_display = catalogs_display, username = username)
 
 @app.route('/item/<id>/delete', methods=['GET', 'POST'])
 def delete_item(id):
-    connect_db()
     item = session.query(Item).filter_by(id = id).one()
 
     if request.method == 'POST':
         session.delete(item)
         session.commit()
-        disconnect_db()
         return redirect(url_for('home'))
 
     if request.method == 'GET':
-        disconnect_db()
         item_display = {'id' : item.id, 'title' : item.title}
         username = login_session.get('username', None)
         return render_template('delete_item.html', item_display = item_display, username = username)
@@ -231,7 +214,6 @@ def delete_item(id):
 @app.route('/catalog/json')
 def get_jsonified_catalogs():
     """Returns jsonified catalogs"""
-    connect_db()
     json = []
     catalogs = session.query(Catalog).all()
 
@@ -255,4 +237,6 @@ def get_jsonified_catalogs():
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
+    connect_db()
     app.run(host='0.0.0.0', port=8000)
+    disconnect_db()

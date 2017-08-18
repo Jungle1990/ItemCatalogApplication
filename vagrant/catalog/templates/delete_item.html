@@ -1,21 +1,12 @@
-<!DOCTYPE html>
-<html>
-   <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-      <title>Item</title>
-   </head>
+{% extends "main.html" %}
+{% block content %}
+  <h2>Delete item</h2>
 
-   <body>
-      <div class="container">
-        <main class="row">
-          <h2>Delete item</h2>
-          <div class="well well-lg">Are you sure you want to delete <strong>{{ item_display.title }}</strong>?</div>
-          <form action="{{ url_for('delete_item', id = item_display.id)}}" method='POST'>
-            <input class="btn btn-default" type='submit' value='Submit'>
-          </form>
-        </main>
-      </div>
-   </body>
-</html>
+  <div class="well well-lg">
+    Are you sure you want to delete <strong>{{ item_display.title }}</strong>?
+  </div>
+
+  <form action="{{ url_for('delete_item', id = item_display.id)}}" method='POST'>
+    <input class="btn btn-default" type='submit' value='Submit'>
+  </form>
+{% endblock %}
