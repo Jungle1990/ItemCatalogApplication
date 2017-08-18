@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from model import Base, Catalog, Item, create_catalog_with_items
 from data import fake_data
 
+
 def setup_db():
     # Create engine
     engine = create_engine('sqlite:///catalog.db')
