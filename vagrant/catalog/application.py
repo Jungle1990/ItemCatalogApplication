@@ -34,6 +34,8 @@ def index():
 
 @app.route('/catalog')
 def home():
+    """Display all catalogs and all items order by adding time"""
+
     username = login_session.get('username', None)
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
     login_session['state'] = state
@@ -47,6 +49,8 @@ def home():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """Connect to google api"""
+
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -56,7 +60,7 @@ def gconnect():
     # Obtain authorization code
     code = request.data
     try:
-    # Upgrade the authorization code into a credentials object
+        # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
@@ -113,6 +117,8 @@ def gconnect():
 
 @app.route('/gdisconnect')
 def gdisconnect():
+    """Disconnect to google api"""
+
     if login_session['access_token'] is None:
         response = make_response(json.dumps('User does not login'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -129,8 +135,6 @@ def gdisconnect():
         del login_session['username']
         return redirect(url_for('home'))
     else:
-        print result
-        print content
         del login_session['access_token']
         del login_session['gplus_id']
         del login_session['username']
@@ -140,20 +144,29 @@ def gdisconnect():
 
 @app.route('/catalog/<id>/')
 def get_catalog_items(id):
+    """Get all items belonging to the selected catalog"""
+
+    username = login_session.get('username', None)
     catalogs = session.query(Catalog).all()
     selected_catalog = session.query(Catalog).filter_by(id = id).one()
     items = selected_catalog.items
     catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
     items_display = [{'id' : item.id, 'title' : item.title} for item in items]
     items_summary = '{0} Items ({1} items)'.format(selected_catalog.name, len(items_display))
-    return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary)
+    return render_template('home.html', catalogs_display = catalogs_display, items_display = items_display, items_summary = items_summary, username = username)
 
 @app.route('/item/create', methods=['GET', 'POST'])
 def create_item():
+    """Create item"""
+
+    username = login_session.get('username', None)
+    if username is None:
+        return redirect(url_for('home'))
+
     if request.method == 'GET':
         catalogs = session.query(Catalog).all()
         catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
-        return render_template('create_item.html', catalogs_display = catalogs_display)
+        return render_template('create_item.html', catalogs_display = catalogs_display, username = username)
 
     if request.method == 'POST':
         title = request.form['title']
@@ -169,36 +182,46 @@ def create_item():
 
 @app.route('/item/<id>')
 def read_item(id):
+    """Get tile and description of the selected item"""
+
+    username = login_session.get('username', None)
     item = session.query(Item).filter_by(id = id).one()
     item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc}
-    return render_template('read_item.html', item_display = item_display)
+    return render_template('read_item.html', item_display = item_display, username = username)
 
 @app.route('/item/<id>/edit', methods=['GET', 'POST'])
 def edit_item(id):
+    """Edit item"""
+
+    username = login_session.get('username', None)
+    if username is None:
+        return redirect(url_for('home'))
     catalogs = session.query(Catalog).all()
     item = session.query(Item).filter_by(id = id).one()
     catalogs_display = [{'id' : catalog.id, 'name' : catalog.name} for catalog in catalogs]
 
     if request.method == 'POST':
-        print '1'
         if request.form['title'] is not None:
             item.title = request.form['title']
         if request.form['desc'] is not None:
             item.desc = request.form['desc']
         if request.form['catalog_id'] is not None:
             item.catalog_id = request.form['catalog_id']
-        print '2'
         session.add(item)
         session.commit()
         return redirect(url_for('read_item', id = id))
 
     if request.method == 'GET':
-        username = login_session.get('username', None)
         item_display = {'id' : item.id, 'title' : item.title, 'desc' : item.desc, 'catalog_id' : item.catalog_id}
         return render_template('edit_item.html', item_display = item_display, catalogs_display = catalogs_display, username = username)
 
 @app.route('/item/<id>/delete', methods=['GET', 'POST'])
 def delete_item(id):
+    """Delete item"""
+
+    username = login_session.get('username', None)
+    if username is None:
+        return redirect(url_for('home'))
     item = session.query(Item).filter_by(id = id).one()
 
     if request.method == 'POST':
@@ -213,7 +236,8 @@ def delete_item(id):
 
 @app.route('/catalog/json')
 def get_jsonified_catalogs():
-    """Returns jsonified catalogs"""
+    """Returns jsonified catalogs and items"""
+
     json = []
     catalogs = session.query(Catalog).all()
 
@@ -224,13 +248,13 @@ def get_jsonified_catalogs():
         catalog_json["date"] = catalog.date.strftime("%d %b %Y %H:%M:%S")
         catalog_json["items"] = []
         for item in catalog.items:
-        	item_json = {}
-        	item_json["id"] = item.id
-        	item_json["title"] = item.title
-        	item_json["desc"] = item.desc
-        	item_json["date"] = item.date.strftime("%d %b %Y %H:%M:%S")
-        	item_json["catalog_id"] = item.catalog_id
-        	catalog_json["items"].append(item_json)
+            item_json = {}
+            item_json["id"] = item.id
+            item_json["title"] = item.title
+            item_json["desc"] = item.desc
+            item_json["date"] = item.date.strftime("%d %b %Y %H:%M:%S")
+            item_json["catalog_id"] = item.catalog_id
+            catalog_json["items"].append(item_json)
         json.append(catalog_json)
     return jsonify(Catalogs = json)
 

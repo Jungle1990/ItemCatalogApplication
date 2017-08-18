@@ -15,9 +15,11 @@
   <div class="col-md-8">
     <h3>
       {{ items_summary }}
-      <span class="pull-right">
-        <a href="{{ url_for('create_item') }}">Create Item</a>
-      </span>
+      {% if username is not none %}
+        <span class="pull-right">
+          <a href="{{ url_for('create_item') }}">Create Item</a>
+        </span>
+      {% endif %}
     </h3>
 
     <div class="list-group">

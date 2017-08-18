@@ -11,7 +11,7 @@
 
     <script src="https://code.jquery.com/jquery-1.8.2.min.js" integrity="sha256-9VTS8JJyxvcUR+v+RTLTsd0ZWbzmafmlzMmeZO9RFyk=" crossorigin="anonymous"></script>
 
-    <!-- <script src="//apis.google.com/js/platform.js?onload=start"></script> -->
+    <script src="//apis.google.com/js/platform.js?onload=start"></script>
     <title>Catalog</title>
   </head>
 
@@ -39,7 +39,7 @@
                 </div>
               </li>
             {% else %}
-              <li><a href="">{{ username }}</a></li>
+              <li><a href="/catalog">{{ username }}</a></li>
 
               <li><a href="{{ url_for('gdisconnect') }}">Logout</a></li>
             {% endif %}
