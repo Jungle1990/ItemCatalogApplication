@@ -32,8 +32,5 @@ def fake_catalog():
 
 
 def fake_user():
-    user = {}
-    user['name'] = 'Zhang Wei'
-    user['email'] = 'zhangwei1990@hotmail.com'
-    user['gplus_id'] = 'fake_gplus_id'
+    user = [{'name': 'Zhang Wei'}, {'name': 'Test'}]
     return user

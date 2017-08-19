@@ -8,7 +8,8 @@ from sqlalchemy import create_engine, desc
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from time import strftime
-from model import Catalog, Item
+from model import Catalog, Item, User
+from functools import wraps
 import httplib2
 import json
 import requests
@@ -34,6 +35,21 @@ def connect_db():
 def disconnect_db():
     session.close()
     engine.dispose()
+
+
+def save_user_if_not_exist(name):
+    user = get_user(name)
+    if user is None:
+        user = User(name)
+        session.add(user)
+        session.commit()
+
+def get_user(name):
+    try:
+        user = session.query(User).filter_by(name=name).one()
+        return user
+    except:
+        return None
 
 
 def login_required(f):
@@ -153,6 +169,9 @@ def gconnect():
     data = answer.json()
     login_session['username'] = data['name']
 
+    # Save user info into db if not exist
+    save_user_if_not_exist(login_session['username'])
+
     return redirect(url_for('home'))
 
 
@@ -234,10 +253,11 @@ def create_item():
         if len(results) > 0:
             return redirect(url_for('createItem'))
 
-        catalog = session.query(Catalog).filter_by(
-            id=request.form['catalog_id']).one()
-        catalog.items.append(Item(title, request.form['desc']))
-        session.add(catalog)
+        user = session.query(User).filter_by(name=username).one()
+        item = Item(title, request.form['desc'])
+        item.catalog_id = request.form['catalog_id']
+        item.user_id = user.id
+        session.add(item)
         session.commit()
         return redirect(url_for('home'))
 
@@ -263,6 +283,11 @@ def edit_item(id):
     username = login_session.get('username', None)
     catalogs = session.query(Catalog).all()
     item = session.query(Item).filter_by(id=id).one()
+    # Check if current user is the creator of the item
+    user = get_user(username)
+    if user.id != item.user_id:
+        return redirect(url_for('home'))
+
     catalogs_display = [
         {
             'id': catalog.id,
@@ -300,6 +325,10 @@ def delete_item(id):
 
     username = login_session.get('username', None)
     item = session.query(Item).filter_by(id=id).one()
+    # Check if current user is the creator of the item
+    user = get_user(username)
+    if user.id != item.user_id:
+        return redirect(url_for('home'))
 
     if request.method == 'POST':
         session.delete(item)
@@ -338,6 +367,7 @@ def get_jsonified_catalogs():
             catalog_json["items"].append(item_json)
         json.append(catalog_json)
     return jsonify(Catalogs=json)
+
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'

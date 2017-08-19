@@ -52,13 +52,9 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    email = Column(String)
-    gplus_id = Column(String)
     date = Column(DateTime, default=datetime.now(), onupdate=datetime.now)
 
     items = relationship("Item", back_populates="user")
 
-    def __init__(self, name, email, gplus_id):
+    def __init__(self, name):
         self.name = name
-        self.email = email
-        self.gplus_id = gplus_id
