@@ -44,6 +44,7 @@ def save_user_if_not_exist(name):
         session.add(user)
         session.commit()
 
+
 def get_user(name):
     try:
         user = session.query(User).filter_by(name=name).one()
@@ -123,7 +124,9 @@ def gconnect():
 
     # Check that the access token is valid.
     access_token = credentials.access_token
-    url = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' % access_token
+    url = (
+        "https://www.googleapis.com/"
+        "oauth2/v1/tokeninfo?access_token=%s") % access_token
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.
@@ -184,7 +187,9 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = (
+        "https://accounts.google.com/"
+        "o/oauth2/revoke?token=%s") % login_session['access_token']
     h = httplib2.Http()
     response = h.request(url, 'GET')
     result = response[0]
@@ -367,6 +372,20 @@ def get_jsonified_catalogs():
             catalog_json["items"].append(item_json)
         json.append(catalog_json)
     return jsonify(Catalogs=json)
+
+
+@app.route('/item/<id>/json')
+def get_jsonified_item(id):
+    """Returns jsonified item"""
+
+    item = session.query(Item).filter_by(id=id).one()
+    json = {}
+    json["id"] = item.id
+    json["title"] = item.title
+    json["desc"] = item.desc
+    json["date"] = item.date.strftime("%d %b %Y %H: %M: %S")
+    json["catalog"] = item.catalog.name
+    return jsonify(Item=json)
 
 
 if __name__ == '__main__':
