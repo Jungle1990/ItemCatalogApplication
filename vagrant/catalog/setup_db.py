@@ -2,8 +2,8 @@
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from model import Base, Catalog, Item, create_catalog_with_items
-from data import fake_data
+from model import Base, Catalog, Item, User
+from data import fake_catalog, fake_user
 
 
 def setup_db():
@@ -17,11 +17,22 @@ def setup_db():
     # Clear catalog and item in database
     session.query(Catalog).delete()
     session.query(Item).delete()
-    # Get fake catalog and add to database
-    for catalog, items in fake_data().items():
-        session.add(create_catalog_with_items(catalog, items))
-    # Commit the change
+    session.query(User).delete()
+    # Get fake catalog and user, then add to database
+    user_info = fake_user()
+    user = User(user_info['name'], user_info['email'], user_info['gplus_id'])
+    session.add(user)
     session.commit()
+    for catalog, items in fake_catalog().items():
+        catalog = Catalog(catalog)
+        session.add(catalog)
+        session.commit()
+        for item_title, item_desc in items.items():
+            item = Item(item_title, item_desc)
+            item.catalog_id = catalog.id
+            item.user_id = user.id
+            session.add(item)
+            session.commit()
     # Close session
     session.close()
     # Dispose engine

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-def fake_data():
+def fake_catalog():
     catalog_with_items = {}
     catalog_with_items['Database'] = {
         'PostgreSQL': 'PostgreSQL desc',
@@ -29,3 +29,11 @@ def fake_data():
     }
 
     return catalog_with_items
+
+
+def fake_user():
+    user = {}
+    user['name'] = 'Zhang Wei'
+    user['email'] = 'zhangwei1990@hotmail.com'
+    user['gplus_id'] = 'fake_gplus_id'
+    return user

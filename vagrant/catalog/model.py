@@ -37,14 +37,28 @@ class Item(Base):
     catalog_id = Column(Integer, ForeignKey('catalog.id'))
     catalog = relationship("Catalog", back_populates="items")
 
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship('User', back_populates="items")
+
     def __init__(self, title, desc):
         self.title = title
         self.desc = desc
 
 
-def create_catalog_with_items(catalog_name, items):
-    catalog = Catalog(catalog_name)
-    for item_title, item_desc in items.items():
-        catalog.items.append(Item(item_title, item_desc))
+class User(Base):
+    """Define user schema"""
 
-    return catalog
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String)
+    gplus_id = Column(String)
+    date = Column(DateTime, default=datetime.now(), onupdate=datetime.now)
+
+    items = relationship("Item", back_populates="user")
+
+    def __init__(self, name, email, gplus_id):
+        self.name = name
+        self.email = email
+        self.gplus_id = gplus_id

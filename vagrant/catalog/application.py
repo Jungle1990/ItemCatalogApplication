@@ -26,7 +26,7 @@ session = None
 
 def connect_db():
     global engine, session
-    engine = create_engine('sqlite: ///catalog.db')
+    engine = create_engine('sqlite:///catalog.db')
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -34,6 +34,16 @@ def connect_db():
 def disconnect_db():
     session.close()
     engine.dispose()
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' in login_session:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('home'))
+    return decorated_function
 
 
 @app.route('/')
@@ -137,7 +147,7 @@ def gconnect():
     login_session['gplus_id'] = gplus_id
 
     # Get user info
-    userinfo_url = "https: //www.googleapis.com/oauth2/v1/userinfo"
+    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
     params = {'access_token':  credentials.access_token, 'alt':  'json'}
     answer = requests.get(userinfo_url, params=params)
     data = answer.json()
@@ -200,12 +210,11 @@ def get_catalog_items(id):
 
 
 @app.route('/item/create', methods=['GET', 'POST'])
+@login_required
 def create_item():
     """Create item"""
 
     username = login_session.get('username', None)
-    if username is None:
-        return redirect(url_for('home'))
 
     if request.method == 'GET':
         catalogs = session.query(Catalog).all()
@@ -247,12 +256,11 @@ def read_item(id):
 
 
 @app.route('/item/<id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_item(id):
     """Edit item"""
 
     username = login_session.get('username', None)
-    if username is None:
-        return redirect(url_for('home'))
     catalogs = session.query(Catalog).all()
     item = session.query(Item).filter_by(id=id).one()
     catalogs_display = [
@@ -286,12 +294,11 @@ def edit_item(id):
 
 
 @app.route('/item/<id>/delete', methods=['GET', 'POST'])
+@login_required
 def delete_item(id):
     """Delete item"""
 
     username = login_session.get('username', None)
-    if username is None:
-        return redirect(url_for('home'))
     item = session.query(Item).filter_by(id=id).one()
 
     if request.method == 'POST':
